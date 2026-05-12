@@ -15,104 +15,58 @@ XForge SDK is a specialized Python library for simulating the execution of Deep 
 
 ## 🛠 Installation
 
-To install the SDK in **Editable Mode** (recommended for developers), run the following in your terminal:
+### Install via Git (Recommended)
 
-```bash
-cd XForge_sdk
-pip install -e .
-```
-
-### Install from GitHub (Public Repository)
-
-If your GitHub repository is public, anyone can install it using this single command:
+Install the latest version directly from the GitHub repository:
 
 ```bash
 pip install git+https://github.com/BMsemi/XForge_sdk.git
 ```
 
-### Dependencies
-
-The SDK automatically installs:
-
-- `numpy`
-- `torch` (PyTorch)
-- `ultralytics` (YOLO)
-- `Pillow`
-- `opencv-python`
-
----
-
 ## 📖 Quick Start
 
-### 1. Simple Layer Simulation
-
-Test how a specific set of weights performs on your neuromorphic hardware.
 
 ```python
-from XForge import NeuromorphicSimulator
+import streamlit as st
 import numpy as np
+from XForge import NeuromorphicSimulator, ImageProcessor, YOLOWrapper
 
-# Initialize simulator with 64 PEs
-sim = NeuromorphicSimulator(num_pes=64)
+# Page Config
+st.set_page_config(page_title="XForge Dashboard", layout="wide")
 
-# Create dummy Conv2D weights (Out_CH, In_CH, H, W)
-weights = np.random.randn(32, 3, 3, 3)
+# 1. Initialize SDK Components
+# These replace the manual logic previously scattered in app.py and user.py
+@st.cache_resource
+def init_sdk():
+    return {
+        "sim": NeuromorphicSimulator(num_pes=64),
+        "processor": ImageProcessor(),
+        "yolo": YOLOWrapper('yolov8n.pt')
+    }
 
-# Run simulation
-stats = sim.simulate_layer(layer_name="conv1", weights=weights)
+sdk = init_sdk()
 
-print(f"Active PEs: {stats['active_pes']}")
-print(f"Utilization: {stats['util_pct']}%")
-```
+st.title("🎯 YOLO26N: Neuromorphic Analysis SDK")
+st.markdown("---")
 
-### 2. YOLO Weight Extraction
+uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png"])
 
-Analyze a real-world model layer-by-layer.
+if uploaded_file:
+    # 2. Use ImageProcessor for standardized loading
+    img_array, channels = sdk["processor"].load_rgb_image(uploaded_file)
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.subheader("Object Detection")
+        results = sdk["yolo"].predict(img_array)
+        st.image(results[0].plot(), caption="Detection Results")```
 
-```python
-from XForge import YOLOWrapper, NeuromorphicSimulator
 
-# Load YOLOv8
-yolo = YOLOWrapper('yolov8n.pt')
-
-# Extract weights from the first layer
-layer_0_weights = yolo.get_layer_weights(0)
-
-# Simulate hardware execution
-sim = NeuromorphicSimulator()
-results = sim.simulate_layer("YOLO_Layer_0", layer_0_weights)
-
-print(f"Ops processed: {results['ops']}")
-```
-
----
-
-## 📂 Project Structure
-
-```plaintext
-XForge_Project/          <-- Root
-├── setup.py
-├── README.md                # Documentation for other developers
-├── test_sdk.py              # Test code
-├── XForge/              <-- Internal package renamed
-    ├── __init__.py          # Main entry point for the SDK
-    ├── simulator.py         # Hardware simulation engine (Refactored from user.py)
-    ├── processor.py         # Image & Weight preprocessing utilities
-    ├── hardware.py          # Interface for Neuromorphic chip components
-    └── models/
-        └── yolo_wrapper.py  # YOLO integration for detection
-
-```
-
----
 
 ## 🧪 Development & Testing
 
-To run the internal test suite or your custom test scripts:
-
-```bash
-python test_sdk.py
-```
+Run the test suite after installation:
 
 If using the Streamlit Dashboard:
 
