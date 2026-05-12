@@ -27,7 +27,7 @@ pip install -e .
 If your GitHub repository is public, anyone can install it using this single command:
 
 ```bash
-pip install git+https://github.com/username/XForge_sdk.git
+pip install git+https://github.com/BMsemi/XForge_sdk.git
 ```
 
 ### Dependencies
