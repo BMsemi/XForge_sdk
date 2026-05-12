@@ -32,20 +32,3 @@ if uploaded_file:
         st.subheader("Object Detection")
         results = sdk["yolo"].predict(img_array)
         st.image(results[0].plot(), caption="Detection Results")
-
-    with col2:
-        st.subheader("🛠 Hardware Stats")
-        
-        # 3. Use Simulator to analyze a specific layer
-        # Here we extract weights from the first layer of YOLO
-        layer_weights = sdk["yolo"].get_layer_weights(0)
-        
-        if layer_weights is not None:
-            stats = sdk["sim"].simulate_layer("conv1", layer_weights)
-            
-            # Display metrics directly from SDK output
-            st.metric("PE Utilization", f"{stats['util_pct']:.2f}%")
-            st.metric("Total Ops", f"{stats['ops']:,}")
-            st.metric("L2 Writes", f"{stats['l2_writes']:,}")
-        else:
-            st.error("Could not extract weights for simulation.")
