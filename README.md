@@ -60,7 +60,9 @@ if uploaded_file:
     with col1:
         st.subheader("Object Detection")
         results = sdk["yolo"].predict(img_array)
-        st.image(results[0].plot(), caption="Detection Results")```
+        st.image(results[0].plot(), caption="Detection Results")
+        
+```
 
 
 
